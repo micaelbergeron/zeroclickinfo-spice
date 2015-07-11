@@ -23,9 +23,10 @@ attribution github => ["micaelbergeron", "Micael Bergeron"],
 
 # API endpoint - https://duck.co/duckduckhack/spice_attributes#spice-codetocode
 spice to => 'http://api.herostats.io/heroes/$1';
+spice wrap_jsonp_callback => 1;
 
 # Triggers - https://duck.co/duckduckhack/spice_triggers
-triggers any => "dota", "dota2";
+triggers any => "dota", "dota2", "dota 2";
 
 # Handle statement
 handle remainder => sub {

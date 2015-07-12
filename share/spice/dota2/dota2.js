@@ -94,9 +94,15 @@
         });
     };
 
+    env.convert.armor = function(values) {
+        return $.map(values, function(value) {
+            return Math.round((0.06 * value) / (1 + (0.06 * value)) * 100 * 100, 2) / 100;
+        });
+    };
+
     env.convert.attack_range = function(values) {
         if (values[0] == env.constants.melee_attack_range) {
-            values[0] = "melee";
+            values[0] = "Melee";
         }
 
         return values;
@@ -133,8 +139,8 @@
             $.extend(Object.create(item), { label: "Damage", values:["MinDmg", "MaxDmg"], template: "{0} - {1}" }),
             $.extend(Object.create(item), { label: "Health", values:["HP", "HPRegen"], template: "{0} (+ {1} HP/s)" }),
             $.extend(Object.create(item), { label: "Mana", values:["Mana", "ManaRegen"], template: "{0} (+ {1} MP/s)" }),
-            $.extend(Object.create(item), { label: "Armor", values:["Armor"], template: "{0}" }),
-            $.extend(Object.create(item), { label: "Attack range", values:["Range", "ProjectileSpeed"], template: "{0} / {1} speed", convert: env.convert.attack_range }),
+            $.extend(Object.create(item), { label: "Armor", values:["Armor"], template: "{0}%", convert: env.convert.armor }),
+            $.extend(Object.create(item), { label: "Attack range", values:["Range"], template: "{0}", convert: env.convert.attack_range }),
             $.extend(Object.create(item), { label: "Strength", values:["BaseStr", "StrGain"], template: "{0} (+ {1}/lvl)" }),
             $.extend(Object.create(item), { label: "Agility", values:["BaseAgi", "AgiGain"], template: "{0} (+ {1}/lvl)" }),
             $.extend(Object.create(item), { label: "Intelligence", values:["BaseInt", "IntGain"], template: "{0} (+ {1}/lvl)" }),
@@ -146,6 +152,10 @@
             $.extend(Object.create(item), { label: "Turnrate", values:["Turnrate"], template: "{0} ms/180°", convert: env.convert.time_to_turn }),
             $.extend(Object.create(item), { label: "Legs", values:["Legs"], template: "{0}" }),
         ];
+
+        if (api_result["Range"] != env.constants.melee_attack_range) {
+            infoboxItems.push($.extend(Object.create(item), { label: "Projectile speed", values:["ProjectileSpeed"] }));
+        }
 
         var infoboxData = [{
             heading: 'Hero Details',

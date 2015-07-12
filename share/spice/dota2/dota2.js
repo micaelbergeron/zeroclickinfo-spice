@@ -60,16 +60,17 @@
 
     env.inject_api = function(api_result) {
         var heroId = api_result["ID"];
-        if (!env.mock.heroes.hasOwnProperty(heroId))
+        if (!env.constants.heroes.hasOwnProperty(heroId))
             return api_result;
         
-        return $.extend(api_result, env.mock.heroes[heroId]);
+        return $.extend(api_result, env.constants.heroes[heroId]);
     };
 
     /* end api injection */
 
-    env.constants.stat_names: ["Strength", "Agility", "Intelligence"];
-    env.constants.melee_attack_range: 128;
+    env.constants.stat_names = ["Strength", "Agility", "Intelligence"];
+    env.constants.attack_range_names = ["melee", "ranged"];
+    env.constants.melee_attack_range = 128;
     
     env.convert.noop = function(value) {
         return value;
@@ -99,6 +100,17 @@
         }
 
         return values;
+    };
+
+    env.generate_description = function(item) {
+        return "{0} is a {1} {2} {3} hero.".format([
+            item.Name,
+            item.Team == 0 ? "radiant" : "dire",
+            item.Range == env.constants.melee_attack_range
+                ? env.constants.attack_range_names[0]
+                : env.constants.attack_range_names[1],
+            env.convert.primary_stat([item.PrimaryStat])[0].toLowerCase()
+        ]);
     };
 
     env.ddg_spice_dota2 = function(api_result){
@@ -132,7 +144,7 @@
             $.extend(Object.create(item), { label: "Attack point / swing", values:["AttackPoint", "AttackSwing"], template: "{0} / {1} ms", convert: env.convert.sec_to_ms }),
             $.extend(Object.create(item), { label: "Cast point / swing", values:["CastPoint", "CastSwing"], template: "{0} / {1} ms", convert: env.convert.sec_to_ms }),
             $.extend(Object.create(item), { label: "Turnrate", values:["Turnrate"], template: "{0} ms/180°", convert: env.convert.time_to_turn }),
-            $.extend(Object.create(item), { label: "Legs", values:["Legs"], template: "{0}" })
+            $.extend(Object.create(item), { label: "Legs", values:["Legs"], template: "{0}" }),
         ];
 
         var infoboxData = [{
@@ -155,7 +167,7 @@
 
         Spice.add({
             id: "dota2",
-            name: "Dota 2 hero",
+            name: "Dota 2",
             data: api_result,
             meta: {
                 sourceName: "herostats.io",
@@ -166,6 +178,8 @@
                     title: item.Name,
                     url: "http://herostats.io/",
                     image: "https://cdn.steamstatic.com/apps/dota2/images/heroes/{0}_full.png".format([item.Key]),
+                    description: generate_description(item),
+                    subtitle: item.Roles,
                     infoboxData: infoboxData,
                 };
             },

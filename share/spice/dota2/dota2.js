@@ -95,9 +95,11 @@
     };
 
     env.convert.armor = function(values) {
-        return $.map(values, function(value) {
-            return Math.round((0.06 * value) / (1 + (0.06 * value)) * 100 * 100, 2) / 100;
-        });
+        var armor = values[0];
+        return [
+            armor, 
+            Math.round((0.06*armor) / (1 + (0.06*armor)) * 100 * 100, 2) / 100
+        ];
     };
 
     env.convert.attack_range = function(values) {
@@ -117,6 +119,10 @@
                 : env.constants.attack_range_names[1],
             env.convert.primary_stat([item.PrimaryStat])[0].toLowerCase()
         ]);
+    };
+
+    env.generate_roles = function(item) {
+        return item.Role.replace(/,/g, " | ");
     };
 
     env.ddg_spice_dota2 = function(api_result){
@@ -139,7 +145,7 @@
             $.extend(Object.create(item), { label: "Damage", values:["MinDmg", "MaxDmg"], template: "{0} - {1}" }),
             $.extend(Object.create(item), { label: "Health", values:["HP", "HPRegen"], template: "{0} (+ {1} HP/s)" }),
             $.extend(Object.create(item), { label: "Mana", values:["Mana", "ManaRegen"], template: "{0} (+ {1} MP/s)" }),
-            $.extend(Object.create(item), { label: "Armor", values:["Armor"], template: "{0}%", convert: env.convert.armor }),
+            $.extend(Object.create(item), { label: "Armor", values:["Armor"], template: "{0} ({1}%)", convert: env.convert.armor }),
             $.extend(Object.create(item), { label: "Attack range", values:["Range"], template: "{0}", convert: env.convert.attack_range }),
             $.extend(Object.create(item), { label: "Strength", values:["BaseStr", "StrGain"], template: "{0} (+ {1}/lvl)" }),
             $.extend(Object.create(item), { label: "Agility", values:["BaseAgi", "AgiGain"], template: "{0} (+ {1}/lvl)" }),
@@ -149,12 +155,12 @@
             $.extend(Object.create(item), { label: "Vison", values:["DayVision", "NightVision"], template: "{0} day, {1} night" }),
             $.extend(Object.create(item), { label: "Attack point / swing", values:["AttackPoint", "AttackSwing"], template: "{0} / {1} ms", convert: env.convert.sec_to_ms }),
             $.extend(Object.create(item), { label: "Cast point / swing", values:["CastPoint", "CastSwing"], template: "{0} / {1} ms", convert: env.convert.sec_to_ms }),
-            $.extend(Object.create(item), { label: "Turnrate", values:["Turnrate"], template: "{0} ms/180°", convert: env.convert.time_to_turn }),
+            $.extend(Object.create(item), { label: "Turnrate", values:["Turnrate"], template: "{0} ms for 180°", convert: env.convert.time_to_turn }),
             $.extend(Object.create(item), { label: "Legs", values:["Legs"], template: "{0}" }),
         ];
 
         if (api_result["Range"] != env.constants.melee_attack_range) {
-            infoboxItems.push($.extend(Object.create(item), { label: "Projectile speed", values:["ProjectileSpeed"] }));
+            infoboxItems.splice(6, 0, $.extend(Object.create(item), { label: "Projectile speed", values:["ProjectileSpeed"] }));
         }
 
         var infoboxData = [{
@@ -189,7 +195,7 @@
                     url: "http://herostats.io/",
                     image: "https://cdn.steamstatic.com/apps/dota2/images/heroes/{0}_full.png".format([item.Key]),
                     description: generate_description(item),
-                    subtitle: item.Roles,
+                    subtitle: generate_roles(item),
                     infoboxData: infoboxData,
                 };
             },

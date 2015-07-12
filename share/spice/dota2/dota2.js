@@ -1,6 +1,12 @@
 (function (env) {
     "use strict";
 
+    // namespace
+    $.extend(env, {
+        constants: {},
+        convert: {},
+    });
+
     if (!String.prototype.format) {
       String.prototype.format = function(args) {
         return this.replace(/{(\d+)}/g, function(match, number) { 
@@ -12,10 +18,59 @@
       };
     }
 
-    env.constants = { stat_names: ["Strength", "Agility", "Intelligence"], melee_attack_range: 128 };
+    /* 
+     * this code is used to add some properties that are to be
+     * added in the herostats.io API soon.
+     */
+    env.constants.heroes = {
+        "30": {
+            "HeroID" : 1,
+            "NameAliases" : "am",
+            "Role" : "Carry,Escape",
+            "Key" : "antimage",
+            "Rolelevels" : "2,3",
+        },
+        "16": {
+            "HeroID" : 2,
+            "Role" : "Durable,Initiator,Disabler,Jungler",
+            "Key" : "axe",
+            "Rolelevels" : "3,2,1,1",
+        },
+        "78": {
+            "HeroID" : 3,
+            "Role" : "Disabler,Nuker,Support",
+            "Key" : "bane",
+            "Rolelevels" : "3,2,1",
+        },
+        "46": {
+            "HeroID" : 4,
+            "NameAliases" : "bs",
+            "Role" : "Carry,Jungler",
+            "Key" : "bloodseeker",
+            "Rolelevels" : "1,1",
+        },
+        "61": {
+            "HeroID" : 5,
+            "NameAliases" : "cm",
+            "Role" : "Support,Disabler,Nuker,LaneSupport",
+            "Key" : "crystal_maiden",
+            "Rolelevels" : "3,2,2,1",
+        }
+    };
 
-    env.convert = {};
+    env.inject_api = function(api_result) {
+        var heroId = api_result["ID"];
+        if (!env.mock.heroes.hasOwnProperty(heroId))
+            return api_result;
+        
+        return $.extend(api_result, env.mock.heroes[heroId]);
+    };
 
+    /* end api injection */
+
+    env.constants.stat_names: ["Strength", "Agility", "Intelligence"];
+    env.constants.melee_attack_range: 128;
+    
     env.convert.noop = function(value) {
         return value;
     };
@@ -58,7 +113,14 @@
             return Spice.failed('dota2');
         }
 
-        var item = { label: "default", template: "{0}", convert: env.convert.noop };
+        // TODO: remove this when the herostats API is complete.
+        env.inject_api(api_result);
+
+        var item = { 
+            label: "default", 
+            template: "{0}", 
+            convert: env.convert.noop,
+        };
 
         var infoboxItems = [
             $.extend(Object.create(item), { label: "Movement speed", values:["Movespeed"] }),
@@ -113,8 +175,8 @@
                 return {
                     title: item.Name,
                     url: "http://herostats.io/",
-                    image:  "http://herostats.io/img/portraits/large/{0}_large.png".format([item.Name.toLowerCase()]),
-                    infoboxData: infoboxData
+                    image: "https://cdn.steamstatic.com/apps/dota2/images/heroes/{0}_full.png".format([item.Key]),
+                    infoboxData: infoboxData,
                 };
             },
             templates: {
